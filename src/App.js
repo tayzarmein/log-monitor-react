@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import "./App.css";
 import OldGenGraph from "./OldGenGraph";
 import DateTimePicker from "react-datetime-picker";
-import { sub, format } from "date-fns";
+import { parse, sub } from "date-fns";
 import Axios from "axios";
 
 const LOGTYPES = {
@@ -18,20 +18,35 @@ function App() {
   const [startDateTime, setStartDateTime] = useState(
     sub(endDateTime, { weeks: 1 })
   );
+  const [lastEntryDateTime, setLastEntryDateTime] = useState();
   const [dataState, setDataState] = useState("loading");
   const [data, setData] = useState([]);
 
   useEffect(() => {
     Axios.get("api/gclogs", {
       params: {
-        startdatetime: format(startDateTime, "yyyy-MM-dd'T'HH:mm:ss'Z'"),
-        enddatetime: format(endDateTime, "yyyy-MM-dd'T'HH:mm:ss'Z'"),
+        
       },
     })
       .then((r) => {
-        console.log("fetch succeeded. data= ", r.data);
-        setData(r.data);
-        setDataState("ready");
+        const data = r.data.data;
+        console.log("fetch succeeded. data= ", data);
+        
+        if(data.length) {
+          let startDateTime = parse(data[0].datetime, "y-MM-dd HH:mm:ss.SSS", new Date());
+          let endDateTime = parse(data[data.length - 1].datetime, "y-MM-dd HH:mm:ss.SSS", new Date())
+
+          console.log("startDateTime=", startDateTime);
+          console.log("enddatetime=", endDateTime);
+          setStartDateTime(startDateTime);
+          setEndDateTime(endDateTime);
+          setLastEntryDateTime(endDateTime);
+
+          setData(data);
+          setDataState("ready");
+          }
+
+
       })
       .catch((e) => {
         console.log("Error when fetching error=", e);
@@ -43,7 +58,7 @@ function App() {
     //   setData(gclog);
     //   setDataState("ready");
     //   }, 1000);
-  }, [startDateTime, endDateTime]);
+  }, []);
 
   if (dataState === "loading") {
     return <h2>Loading</h2>;
@@ -62,18 +77,18 @@ function App() {
         onChange={(v) => setStartDateTime(v)}
       />
       <DateTimePicker value={endDateTime} onChange={(v) => setEndDateTime(v)} />
-      <button
+      {/* <button
         onClick={() => {
-          setEndDateTime(new Date());
-          setStartDateTime(sub(new Date(), { weeks: 1 }));
+          setEndDateTime(lastEntryDateTime);
+          setStartDateTime(sub(lastEntryDateTime, { months: 1 }));
         }}
       >
         Reset
-      </button>
+      </button> */}
 
-      <button onClick={() => setOneDay()}>1 Day</button>
-      <button onClick={() => setOneWeek()}>1 Week</button>
-      <button onClick={() => setOneMonth()}>1 Month</button>
+      <button onClick={() => setOneDay()}>Latest 1 Day</button>
+      <button onClick={() => setOneWeek()}>Latest 1 Week</button>
+      <button onClick={() => setOneMonth()}>Latest 1 Month</button>
       <button>Live</button>
 
       <p>
@@ -118,21 +133,18 @@ function App() {
   }
 
   function setOneDay() {
-    let now = new Date();
-    setEndDateTime(now);
-    setStartDateTime(sub(now, { days: 1 }));
+    setEndDateTime(lastEntryDateTime);
+    setStartDateTime(sub(lastEntryDateTime, { days: 1 }));
   }
 
   function setOneWeek() {
-    let now = new Date();
-    setEndDateTime(now);
-    setStartDateTime(sub(now, { weeks: 1 }));
+    setEndDateTime(lastEntryDateTime);
+    setStartDateTime(sub(lastEntryDateTime, { weeks: 1 }));
   }
 
   function setOneMonth() {
-    let now = new Date();
-    setEndDateTime(now);
-    setStartDateTime(sub(now, { months: 1 }));
+    setEndDateTime(lastEntryDateTime);
+    setStartDateTime(sub(lastEntryDateTime, { months: 1 }));
   }
 }
 

@@ -9,7 +9,7 @@ export default function OldGenGraph({ data, startDateTime, endDateTime }) {
       return undefined;
     }
 
-    let localdata = data.data;
+    let localdata = data;
     console.log("localdata=", localdata);
     
     localdata = localdata.map((d) => {
