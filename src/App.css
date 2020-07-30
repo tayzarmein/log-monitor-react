@@ -1,0 +1,15 @@
+.nav-bar {
+  list-style: none;
+  /* margin: 1px; */
+  padding: 1px;
+}
+
+.nav-item {
+  display: inline;
+  margin: 2px;
+}
+
+.graph-btn {
+  margin-left: 2px;
+  margin-right: 2px;
+}
