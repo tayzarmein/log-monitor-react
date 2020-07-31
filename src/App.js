@@ -13,7 +13,6 @@ const LOGTYPES = {
 
 function App() {
   const [clickedLog, setClickedLog] = useState(LOGTYPES.oldgenlog);
-  const logDivRef = useRef();
   const [endDateTime, setEndDateTime] = useState(new Date());
   const [startDateTime, setStartDateTime] = useState(
     sub(endDateTime, { weeks: 1 })
@@ -21,20 +20,31 @@ function App() {
   const [lastEntryDateTime, setLastEntryDateTime] = useState();
   const [dataState, setDataState] = useState("loading");
   const [data, setData] = useState([]);
+  const [selectedFile, setSelectedFile] = useState({});
+  const [uploadDataState, setUploadDataState] = useState();
+
+  const logDivRef = useRef();
+
 
   useEffect(() => {
     Axios.get("api/gclogs", {
-      params: {
-        
-      },
+      params: {},
     })
       .then((r) => {
         const data = r.data.data;
         console.log("fetch succeeded. data= ", data);
-        
-        if(data.length) {
-          let startDateTime = parse(data[0].datetime, "y-MM-dd HH:mm:ss.SSS", new Date());
-          let endDateTime = parse(data[data.length - 1].datetime, "y-MM-dd HH:mm:ss.SSS", new Date())
+
+        if (data.length) {
+          let startDateTime = parse(
+            data[0].datetime,
+            "y-MM-dd HH:mm:ss.SSS",
+            new Date()
+          );
+          let endDateTime = parse(
+            data[data.length - 1].datetime,
+            "y-MM-dd HH:mm:ss.SSS",
+            new Date()
+          );
 
           console.log("startDateTime=", startDateTime);
           console.log("enddatetime=", endDateTime);
@@ -44,9 +54,10 @@ function App() {
 
           setData(data);
           setDataState("ready");
-          }
-
-
+        } else {
+          setData(data);
+          setDataState("ready");
+        }
       })
       .catch((e) => {
         console.log("Error when fetching error=", e);
@@ -70,26 +81,17 @@ function App() {
 
   return (
     <div>
-      <h1>Status of Java Memory</h1>
+      <h1>Welcome to Log Monitor App</h1>
       <p>Enter Range:</p>
       <DateTimePicker
         value={startDateTime}
         onChange={(v) => setStartDateTime(v)}
       />
       <DateTimePicker value={endDateTime} onChange={(v) => setEndDateTime(v)} />
-      {/* <button
-        onClick={() => {
-          setEndDateTime(lastEntryDateTime);
-          setStartDateTime(sub(lastEntryDateTime, { months: 1 }));
-        }}
-      >
-        Reset
-      </button> */}
 
       <button onClick={() => setOneDay()}>Latest 1 Day</button>
       <button onClick={() => setOneWeek()}>Latest 1 Week</button>
       <button onClick={() => setOneMonth()}>Latest 1 Month</button>
-      <button>Live</button>
 
       <p>
         <button
@@ -110,6 +112,47 @@ function App() {
         >
           New Gen
         </button>
+      </p>
+      <p>
+        Upload GC Log File?{" "}
+        <input
+          type="file"
+          onChange={(e) => {
+            setSelectedFile(e.target.files[0]);
+            console.log("selected file=", e.target.files);
+          }}
+        />{" "}
+        <button
+          onClick={() => {
+            const formData = new FormData();
+            formData.append("file", selectedFile);
+            Axios.post("api/upload", formData, {
+              timeout: 0
+            })
+              .then((r) => {
+                const data = r.data;
+                console.log("Axios response=", r);
+                if (data.message === "success") {
+                  setUploadDataState("uploadingSuccess");
+                  if (window.confirm("Success, Press OK To Reload")) {
+                    window.location.reload();
+                  }
+                }
+              })
+              .catch((e) => {
+                console.log("File upload error. e=", e);
+                setUploadDataState("uploadingerror");
+              });
+            setUploadDataState("uploading");
+          }}
+        >
+          Upload
+        </button>
+        {uploadDataState === "uploading" ? (
+          <span>
+            <strong>Uploading</strong>
+          </span>
+        ) : null}
       </p>
       {renderGraph()}
       <div ref={logDivRef} />
