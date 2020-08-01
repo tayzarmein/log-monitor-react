@@ -1,15 +1,21 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import "./App.css";
-import OldGenGraph from "./OldGenGraph";
+import OldGenGraph from "./components/OldGenGraph";
 import DateTimePicker from "react-datetime-picker";
 import { parse, sub } from "date-fns";
 import Axios from "axios";
+import LoginForm from "./components/LoginForm";
+import { store } from "./store/store";
 
 const LOGTYPES = {
   all: "all",
   newgenlog: "newgenlog",
   oldgenlog: "oldgenlog",
 };
+
+const axios = Axios.create({
+  baseURL: 'http://localhost:8000',
+});
 
 function App() {
   const [clickedLog, setClickedLog] = useState(LOGTYPES.oldgenlog);
@@ -24,11 +30,20 @@ function App() {
   const [uploadDataState, setUploadDataState] = useState();
 
   const logDivRef = useRef();
+  const context = useContext(store);
+  const globalState = context.state;
+  const globalDispatch = context.dispatch;
 
 
   useEffect(() => {
-    Axios.get("api/gclogs", {
+    if (globalState.loginStatus !== 'loggedIn') {
+      return undefined;
+    }
+    axios.get("api/gclogs", {
       params: {},
+      headers: {
+        'Authorization': 'Bearer ' + globalState.token
+      }
     })
       .then((r) => {
         const data = r.data.data;
@@ -69,19 +84,23 @@ function App() {
     //   setData(gclog);
     //   setDataState("ready");
     //   }, 1000);
-  }, []);
+  }, [globalState]);
 
-  if (dataState === "loading") {
-    return <h2>Loading</h2>;
-  }
+  // if (dataState === "loading") {
+  //   return <h2>Loading</h2>;
+  // }
 
   if (dataState === "error") {
     return <h2>Error connecting with the backend.</h2>;
   }
 
+  if (globalState.loginStatus !== 'loggedIn') {
+    return <LoginForm />
+  }
+
   return (
     <div>
-      <h1>Welcome to Log Monitor App</h1>
+      <h1>Welcome to Log Monitor App{globalState.loginStatus === 'loggedIn' ? <button onClick={() => globalDispatch({type: 'logout'})}>Logout</button> : null}</h1>
       <p>Enter Range:</p>
       <DateTimePicker
         value={startDateTime}
@@ -126,7 +145,7 @@ function App() {
           onClick={() => {
             const formData = new FormData();
             formData.append("file", selectedFile);
-            Axios.post("api/upload", formData, {
+            axios.post("api/upload", formData, {
               timeout: 0
             })
               .then((r) => {
