@@ -7,6 +7,8 @@ export default function LoginForm() {
   const [password, setPassword] = useState("");
   const globalState = useContext(store);
 
+  // console.log("WTZM_ENV=", process.env.REACT_APP_WTZM_ENV);
+
   // console.log("globalState=", globalState);
   return (
     <div>
@@ -26,21 +28,29 @@ export default function LoginForm() {
   );
 
   function submit() {
-    Axios.post("http://localhost:8000/api/login", {
-      email,
-      password,
-      password_confirmation: password,
-    })
-      .then((res) => {
-        console.log("Axios login successed. res data =", res.data);
-        if(res.data.token) {
-            localStorage.setItem('token', res.data.token);
-            localStorage.setItem('loginStatus', 'loggedIn');
-        }
-        globalState.dispatch({ type: "setToken", data: res.data });
+    const axios = Axios.create({});
+    axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+    axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+    axios.defaults.withCredentials = true;
+
+    axios.get('http://localhost:8000/sanctum/csrf-cookie').then(res => {
+      axios.post("http://localhost:8000/api/login", {
+        email,
+        password,
+        password_confirmation: password,
+      }, {
       })
-      .catch((e) => {
-        console.log("Axios login error. error=", e);
-      });
+        .then((res) => {
+          console.log("Axios login successed. res data =", res.data);
+          if(res.data.message === 'login succeeded') {
+            console.log("login succeeded");
+            globalState.dispatch({type: 'loginSucceeded'})
+          }
+        })
+        .catch((e) => {
+          console.log("Axios login error. error=", e);
+        });
+  
+    })
   }
 }

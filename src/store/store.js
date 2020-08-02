@@ -4,8 +4,7 @@ import React, { createContext, useReducer } from "react";
 const initialState = {
   loginStatus: localStorage.getItem("loginStatus")
     ? localStorage.getItem("loginStatus")
-    : "loggedOut",
-  token: localStorage.getItem("token") ? localStorage.getItem("token") : "",
+    : "",
 };
 const store = createContext(initialState);
 const { Provider } = store;
@@ -18,6 +17,19 @@ const StateProvider = ({ children }) => {
           ...state,
           loginStatus: "loggedIn",
         };
+
+      case "loginSucceeded":
+        return {
+          ...state,
+          loginStatus: "loggedIn",
+        };
+
+      case "setUser":
+        return {
+          ...state,
+          loginStatus: "loggedIn",
+          user: action.data
+        }
 
       case "logout":
         // Axios.post("http://localhost:8000/api/logout", {}, {
@@ -36,9 +48,6 @@ const StateProvider = ({ children }) => {
         //     console.log("Axios log out error. e=", e)
         //     return state;
         //   });
-        localStorage.setItem("loginStatus", "loggedOut");
-        localStorage.removeItem("token");
-
         return {
           ...state,
           loginStatus: "loggedOut",
