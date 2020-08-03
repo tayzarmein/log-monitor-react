@@ -4,7 +4,7 @@ import DateTimePicker from "react-datetime-picker";
 import { parse, sub } from "date-fns";
 import OldGenGraph from "./OldGenGraph";
 import Axios from "axios";
-import LogoutBtn from "./LogoutBtn";
+import AppHeader from "./AppHeader";
 
 export default function MainUI() {
   const LOGTYPES = {
@@ -67,7 +67,8 @@ export default function MainUI() {
         }
       })
       .catch((e) => {
-        if (e.response.status === 401) {
+        console.log("Axio get error. e=", e);
+        if (e.request.status === 401) {
           globalDispatch({ type: "logout" });
         }
         console.log("Error when fetching error=", e);
@@ -81,88 +82,126 @@ export default function MainUI() {
     //   }, 1000);
   }, [globalDispatch]);
 
-  if(loading) {
-      return <p>Loading Graph</p>
+  if (loading) {
+    return <p>Loading Graph</p>;
   }
 
   return (
     <div>
-      <h1>
-        Welcome to Log Monitor App
-        {globalState.loginStatus === "loggedIn" ? <LogoutBtn /> : null}
-      </h1>
-      <p>Enter Range:</p>
-      <DateTimePicker
-        value={startDateTime}
-        onChange={(v) => setStartDateTime(v)}
-      />
-      <DateTimePicker value={endDateTime} onChange={(v) => setEndDateTime(v)} />
+      <AppHeader />
+      <div className="form-group">
+        <h5>Enter Range:</h5>
+        <div style={{ margin: "0 0 10px 0" }}>
+          <label style={{ margin: "0 10px 0 0" }}>From :</label>
+          <DateTimePicker
+            value={startDateTime}
+            onChange={(v) => setStartDateTime(v)}
+          />
+          <label style={{ margin: "0 10px 0 10px" }}>To :</label>
+          <DateTimePicker
+            value={endDateTime}
+            onChange={(v) => setEndDateTime(v)}
+          />
+        </div>
+        <div className="btn-group">
+          <button
+            className="btn btn-outline-secondary"
+            onClick={() => setOneDay()}
+          >
+            Latest 1 Day
+          </button>
+          <button
+            className="btn btn-outline-secondary"
+            onClick={() => setOneWeek()}
+          >
+            Latest 1 Week
+          </button>
+          <button
+            className="btn btn-outline-secondary"
+            onClick={() => setOneMonth()}
+          >
+            Latest 1 Month
+          </button>
+        </div>
+      </div>
 
-      <button onClick={() => setOneDay()}>Latest 1 Day</button>
-      <button onClick={() => setOneWeek()}>Latest 1 Week</button>
-      <button onClick={() => setOneMonth()}>Latest 1 Month</button>
-
-      <p>
+      <div className="btn-group">
         <button
           onClick={() => setClickedLog(LOGTYPES.all)}
-          className="graph-btn"
+          className="btn btn-outline-secondary"
         >
           All
         </button>
         <button
           onClick={() => setClickedLog(LOGTYPES.oldgenlog)}
-          className="graph-btn"
+          className="btn btn-outline-secondary"
         >
           Old Gen
         </button>
         <button
           onClick={() => setClickedLog(LOGTYPES.newgenlog)}
-          className="graph-btn"
+          className="btn btn-outline-secondary"
         >
           New Gen
         </button>
-      </p>
-      <p>
-        Upload GC Log File?{" "}
-        <input
-          type="file"
-          onChange={(e) => {
-            setSelectedFile(e.target.files[0]);
-            console.log("selected file=", e.target.files);
-          }}
-        />{" "}
-        <button
-          onClick={() => {
-            const formData = new FormData();
-            formData.append("file", selectedFile);
-            Axios.post("api/upload", formData, {
-              timeout: 0,
-            })
-              .then((r) => {
-                const data = r.data;
-                console.log("Axios response=", r);
-                if (data.message === "success") {
-                  setUploadDataState("uploadingSuccess");
-                  if (window.confirm("Success, Press OK To Reload")) {
-                    window.location.reload();
-                  }
-                }
+      </div>
+      <div className="input-group mb-3" style={{margin: "10px 0 10px 0"}}>
+        <div className="custom-file">
+          {/* <label>Upload GC Log file?</label> */}
+          <input
+            type="file"
+            className="custom-file-input"
+            id="inputGroupFile02"
+            onChange={(e) => {
+              setSelectedFile(e.target.files[0]);
+              console.log("selected file=", e.target.files);
+            }}
+          />
+          <label
+            className="custom-file-label"
+            htmlFor="inputGroupFile02"
+            aria-describedby="inputGroupFileAddon02"
+          >
+            Upload GC Log file?
+          </label>
+        </div>
+        <div className="input-group-append">
+          <span
+            className="input-group-text"
+            id="inputGroupFileAddon02"
+            onClick={() => {
+              const formData = new FormData();
+              formData.append("file", selectedFile);
+              Axios.post("http://localhost:8000/api/upload", formData, {
+                timeout: 0,
+                withCredentials: true,
               })
-              .catch((e) => {
-                console.log("File upload error. e=", e);
-                setUploadDataState("uploadingerror");
-              });
-            setUploadDataState("uploading");
-          }}
-        >
-          Upload
-        </button>
-        {uploadDataState === "uploading" ? (
-          <span>
-            <strong>Uploading</strong>
+                .then((r) => {
+                  const data = r.data;
+                  console.log("Axios response=", r);
+                  if (data.message === "success") {
+                    setUploadDataState("uploadingSuccess");
+                    if (window.confirm("Success, Press OK To Reload")) {
+                      window.location.reload();
+                    }
+                  }
+                })
+                .catch((e) => {
+                  console.log("File upload error. e=", e);
+                  setUploadDataState("uploadingerror");
+                });
+              setUploadDataState("uploading");
+            }}
+          >
+            Upload
           </span>
-        ) : null}
-      </p>
+        </div>
+      </div>
+      {uploadDataState === "uploading" ? (
+        <span>
+          <strong>Uploading</strong>
+        </span>
+      ) : null}
       {renderGraph()}
       <div ref={logDivRef} />
     </div>

@@ -1,6 +1,6 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import * as d3 from "d3";
-import { parse } from "date-fns";
+import { parse, format } from "date-fns";
 
 
 export default function OldGenGraph({ data, startDateTime, endDateTime }) {
@@ -41,7 +41,8 @@ export default function OldGenGraph({ data, startDateTime, endDateTime }) {
       left: 70,
     };
 
-    const width = 900 - margin.left - margin.right;
+
+    const width = document.getElementById("resultDiv").offsetWidth - margin.left - margin.right;
     const height = 400 - margin.top - margin.bottom;
 
     const x = d3.scaleTime().range([0, width]);
@@ -143,18 +144,20 @@ export default function OldGenGraph({ data, startDateTime, endDateTime }) {
     };
   });
 
+  // useEffect(() => {
+  //   document.getElementById("resultDiv").add
+  // })
+
   if (data.length === 0) {
     return <p>There is no data</p>;
   }
 
   return (
     <div>
-      <h3>
+      <p>
         This is a log of Oldgen
-        {startDateTime && endDateTime
-          ? ` Between ${startDateTime.toLocaleString()} and ${endDateTime.toLocaleString()}`
-          : null}
-      </h3>
+          Between <strong>{format(startDateTime, "MMM-do h a")}</strong> and <strong>{format(endDateTime, "MMM-do h a")}</strong>
+      </p>
       <div id="resultDiv" />
     </div>
   );

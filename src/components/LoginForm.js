@@ -12,18 +12,16 @@ export default function LoginForm() {
   // console.log("globalState=", globalState);
   return (
     <div>
-      <h1>Please Login</h1>
-      <p>
-        email:{" "}
-        <input value={email} onChange={(e) => setEmail(e.target.value)} />
-      </p>
-      <p>
-        Password:{" "}
-        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-      </p>
-      <p>
-        <button onClick={() => submit()}>Submit</button>
-      </p>
+      <h2 style={{textAlign: "center"}}>Please Login</h2>
+      <div className="form-group">
+        <label>Username</label>
+        <input className="form-control" value={email} onChange={(e) => setEmail(e.target.value)} />
+      </div>
+      <div className="form-group">
+        <label>Password</label>
+        <input className="form-control" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+      </div>
+        <button className="btn btn-outline-secondary" onClick={() => submit()}>Submit</button>
     </div>
   );
 
@@ -43,8 +41,8 @@ export default function LoginForm() {
         .then((res) => {
           console.log("Axios login successed. res data =", res.data);
           if(res.data.message === 'login succeeded') {
-            console.log("login succeeded");
-            globalState.dispatch({type: 'loginSucceeded'})
+            console.log("login succeeded response data= ", res.data);
+            globalState.dispatch({type: 'loginSucceeded', data: res.data})
           }
         })
         .catch((e) => {

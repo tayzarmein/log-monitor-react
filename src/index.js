@@ -3,13 +3,16 @@ import ReactDOM from 'react-dom';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 import { StateProvider } from "./store/store";
+import Container from "react-bootstrap/Container";
 
 
 ReactDOM.render(
   <React.StrictMode>
-    <StateProvider>
-      <App />
-    </StateProvider>
+    <Container>
+      <StateProvider>
+        <App />
+      </StateProvider>
+    </Container>
   </React.StrictMode>,
   document.getElementById('root')
 );
