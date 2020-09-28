@@ -1,10 +1,13 @@
 import React, { useContext, useRef, useState, useEffect } from "react";
 import { store } from "../store/store";
-import DateTimePicker from "react-datetime-picker";
 import { parse, sub } from "date-fns";
 import OldGenGraph from "./OldGenGraph";
 import Axios from "axios";
 import AppHeader from "./AppHeader";
+import DateRangePicker from "./DateRangePicker";
+import LogTypeSelect from "./LogTypeSelect";
+import GclogUpload from "./GclogUpload";
+import { Row, Col } from "react-bootstrap";
 
 export default function MainUI() {
   const LOGTYPES = {
@@ -32,6 +35,19 @@ export default function MainUI() {
 
   const logDivRef = useRef();
 
+  const onClickQuickButtons = (data) => {
+    //todo
+    // if (data.clickedBtnName === "oneDay") {
+    //   setOneDay();
+    // }
+    // if (data.clickedBtnName === "oneDay") {
+    //   setOneWeek();
+    // }
+    // if (data.clickedBtnName === "oneDay") {
+    //   setOneMonth();
+    // }
+  };
+
   useEffect(() => {
     Axios.get("http://localhost:8000/api/gclogs", {
       params: {},
@@ -53,8 +69,6 @@ export default function MainUI() {
             new Date()
           );
 
-          console.log("startDateTime=", startDateTime);
-          console.log("enddatetime=", endDateTime);
           setStartDateTime(startDateTime);
           setEndDateTime(endDateTime);
           setLastEntryDateTime(endDateTime);
@@ -89,87 +103,27 @@ export default function MainUI() {
   return (
     <div>
       <AppHeader />
-      <div className="form-group">
-        <h5>Enter Range:</h5>
-        <div style={{ margin: "0 0 10px 0" }}>
-          <label style={{ margin: "0 10px 0 0" }}>From :</label>
-          <DateTimePicker
-            value={startDateTime}
-            onChange={(v) => setStartDateTime(v)}
-          />
-          <label style={{ margin: "0 10px 0 10px" }}>To :</label>
-          <DateTimePicker
-            value={endDateTime}
-            onChange={(v) => setEndDateTime(v)}
-          />
-        </div>
-        <div className="btn-group">
-          <button
-            className="btn btn-outline-secondary"
-            onClick={() => setOneDay()}
-          >
-            Latest 1 Day
-          </button>
-          <button
-            className="btn btn-outline-secondary"
-            onClick={() => setOneWeek()}
-          >
-            Latest 1 Week
-          </button>
-          <button
-            className="btn btn-outline-secondary"
-            onClick={() => setOneMonth()}
-          >
-            Latest 1 Month
-          </button>
-        </div>
-      </div>
-
-      <div className="btn-group">
-        <button
-          onClick={() => setClickedLog(LOGTYPES.all)}
-          className="btn btn-outline-secondary"
-        >
-          All
-        </button>
-        <button
-          onClick={() => setClickedLog(LOGTYPES.oldgenlog)}
-          className="btn btn-outline-secondary"
-        >
-          Old Gen
-        </button>
-        <button
-          onClick={() => setClickedLog(LOGTYPES.newgenlog)}
-          className="btn btn-outline-secondary"
-        >
-          New Gen
-        </button>
-      </div>
-      <div className="input-group mb-3" style={{margin: "10px 0 10px 0"}}>
-        <div className="custom-file">
-          {/* <label>Upload GC Log file?</label> */}
-          <input
-            type="file"
-            className="custom-file-input"
-            id="inputGroupFile02"
-            onChange={(e) => {
-              setSelectedFile(e.target.files[0]);
-              console.log("selected file=", e.target.files);
+      <Row>
+        <Col md>
+          <DateRangePicker
+            dateRange={{
+              startDatetime: startDateTime,
+              endDatetime: endDateTime,
             }}
+            onChange={(dr) => {
+              setStartDateTime(dr.startDatetime);
+              setEndDateTime(dr.endDatetime);
+            }}
+            onClickQuickButtons={onClickQuickButtons}
           />
-          <label
-            className="custom-file-label"
-            htmlFor="inputGroupFile02"
-            aria-describedby="inputGroupFileAddon02"
-          >
-            Upload GC Log file?
-          </label>
-        </div>
-        <div className="input-group-append">
-          <span
-            className="input-group-text"
-            id="inputGroupFileAddon02"
-            onClick={() => {
+        </Col>
+        <Col md>
+          <LogTypeSelect />
+
+          <GclogUpload
+            selectedFile={selectedFile}
+            onSelected={(f) => setSelectedFile(f)}
+            onUpload={() => {
               const formData = new FormData();
               formData.append("file", selectedFile);
               Axios.post("http://localhost:8000/api/upload", formData, {
@@ -192,16 +146,16 @@ export default function MainUI() {
                 });
               setUploadDataState("uploading");
             }}
-          >
-            Upload
-          </span>
-        </div>
-      </div>
-      {uploadDataState === "uploading" ? (
-        <span>
-          <strong>Uploading</strong>
-        </span>
-      ) : null}
+          />
+
+          {uploadDataState === "uploading" ? (
+            <span>
+              <strong>Uploading</strong>
+            </span>
+          ) : null}
+        </Col>
+      </Row>
+
       {renderGraph()}
       <div ref={logDivRef} />
     </div>

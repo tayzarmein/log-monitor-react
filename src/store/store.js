@@ -28,8 +28,8 @@ const StateProvider = ({ children }) => {
         return {
           ...state,
           loginStatus: "loggedIn",
-          user: action.data
-        }
+          user: action.data,
+        };
 
       case "logout":
         // Axios.post("http://localhost:8000/api/logout", {}, {
@@ -61,7 +61,6 @@ const StateProvider = ({ children }) => {
         };
 
       default:
-        console.log("action.type=", action.type);
         throw new Error();
     }
   }, initialState);

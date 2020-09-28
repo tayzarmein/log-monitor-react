@@ -6,15 +6,14 @@ export default function AppHeader() {
   const { state } = useContext(store);
 
   return (
-    <div className="container-fluid">
-      <div className="row">
-        <div className="col-sm-10">
-          <h2 className="text-center">Log Monitor App</h2>{" "}
+    <>
+      {state.loginStatus === "loggedIn" ? (
+        <div className="float-right">
+          <LogoutBtn />
         </div>
-        <div className="col-sm-2 align-self-center">
-          {state.loginStatus === "loggedIn" ? <LogoutBtn /> : null}
-        </div>
-      </div>
-    </div>
+      ) : null}
+
+      <h1 className="text-center">Log Monitor App</h1>
+    </>
   );
 }

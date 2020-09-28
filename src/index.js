@@ -4,6 +4,7 @@ import App from './App';
 import * as serviceWorker from './serviceWorker';
 import { StateProvider } from "./store/store";
 import Container from "react-bootstrap/Container";
+import "bootstrap/dist/css/bootstrap.css";
 
 
 ReactDOM.render(
